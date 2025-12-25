@@ -9,13 +9,13 @@ import os
 import logging
 import pandas as pd
 from datetime import datetime
-from extensions import db, jwt, limiter
-from auth import auth_bp
-from models import Analysis
+from backend.extensions import db, jwt, limiter
+from backend.routes.auth import auth_bp
+from backend.models.models import Analysis
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, jwt_required
-from model_loader import predict_sentiment_bert, predict_aspect_sentiment, is_model_loaded, reload_model
-from scraper import get_youtube_comments
-from train import train
+from backend.services.model_loader import predict_sentiment_bert, predict_aspect_sentiment, is_model_loaded, reload_model
+from backend.services.scraper import get_youtube_comments
+from backend.scripts.train import train
 import threading
 
 # Configure logging

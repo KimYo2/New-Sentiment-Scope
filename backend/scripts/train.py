@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
 
-from models import Analysis
+from backend.models.models import Analysis
 import pandas as pd
 
 # Configuration
