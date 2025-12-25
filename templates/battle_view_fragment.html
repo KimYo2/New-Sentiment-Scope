@@ -1,0 +1,95 @@
+<!-- Brand Battle View (New) -->
+<div id="battle_view" class="hidden animate-slide-up">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <!-- Battle Input Card -->
+        <div class="glass-card rounded-3xl p-8 shadow-soft border border-white/50">
+            <div class="text-center mb-8">
+                <span
+                    class="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider mb-2 inline-block">Brand
+                    vs Brand</span>
+                <h3 class="text-2xl font-bold text-[#1A1F36]">Competitor Battle</h3>
+                <p class="text-sm text-[#64748B]">Bandingkan sentimen brand Anda dengan kompetitor secara head-to-head
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                <!-- VS Badge -->
+                <div
+                    class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 items-center justify-center text-white font-black text-xl shadow-lg border-4 border-white">
+                    VS
+                </div>
+
+                <!-- Brand A Input -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-[#1A1F36]">URL Brand Anda (YouTube)</label>
+                    <input type="text" id="battleUrlA"
+                        class="w-full bg-[#F8FBFF] border border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-400"
+                        placeholder="https://youtube.com/watch?v=...">
+                </div>
+
+                <!-- Brand B Input -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-[#1A1F36] text-right md:text-left">URL Kompetitor
+                        (YouTube)</label>
+                    <input type="text" id="battleUrlB"
+                        class="w-full bg-[#FFF8F8] border border-red-200 rounded-xl p-3 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder:text-gray-400"
+                        placeholder="https://youtube.com/watch?v=...">
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button onclick="startBattle()" id="startBattleBtn"
+                    class="px-8 py-3 bg-gradient-to-r from-[#1A1F36] to-[#3D4458] text-white rounded-xl font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                    <i class="fas fa-bolt text-yellow-400"></i>
+                    Mulai Pertarungan
+                </button>
+            </div>
+        </div>
+
+        <!-- Battle Result (Hidden Initially) -->
+        <div id="battleResult" class="hidden space-y-6">
+            <!-- Verdict Banner -->
+            <div id="battleVerdict"
+                class="glass-card rounded-2xl p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 flex items-center justify-between">
+                <!-- Content will be injected by JS -->
+            </div>
+
+            <!-- Comparison Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Brand A Stats -->
+                <div class="glass-card rounded-2xl p-6 border-t-4 border-blue-500">
+                    <h4 class="text-lg font-bold text-[#1A1F36] mb-4 text-center">Brand Anda</h4>
+                    <div class="flex justify-center mb-4">
+                        <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                            <span id="scoreA" class="text-2xl font-bold text-blue-600">0%</span>
+                        </div>
+                    </div>
+                    <p class="text-center text-xs text-gray-500 mb-4">Sentimen Positif</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span>Positif:</span> <span id="posA"
+                                class="font-semibold text-green-600">0</span></div>
+                        <div class="flex justify-between"><span>Negatif:</span> <span id="negA"
+                                class="font-semibold text-red-600">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Brand B Stats -->
+                <div class="glass-card rounded-2xl p-6 border-t-4 border-red-500">
+                    <h4 class="text-lg font-bold text-[#1A1F36] mb-4 text-center">Kompetitor</h4>
+                    <div class="flex justify-center mb-4">
+                        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                            <span id="scoreB" class="text-2xl font-bold text-red-600">0%</span>
+                        </div>
+                    </div>
+                    <p class="text-center text-xs text-gray-500 mb-4">Sentimen Positif</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span>Positif:</span> <span id="posB"
+                                class="font-semibold text-green-600">0</span></div>
+                        <div class="flex justify-between"><span>Negatif:</span> <span id="negB"
+                                class="font-semibold text-red-600">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

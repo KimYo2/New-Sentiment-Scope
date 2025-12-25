@@ -67,43 +67,112 @@ const analyzeView = document.getElementById('analyze_view');
 const dashboardView = document.getElementById('dashboard_view');
 const socialView = document.getElementById('social_view');
 const batchView = document.getElementById('batch_view');
-const trainingView = document.getElementById('training_view');
 const guideView = document.getElementById('guide_view');
 const aboutView = document.getElementById('about_view');
+
+// Helper function for CTA button
+function scrollToAnalysis() {
+    const tabNav = document.querySelector('.flex.justify-center.mb-8');
+    if (tabNav) {
+        tabNav.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Ensure analyze tab is active
+        switchTab('analyze');
+    }
+}
+
+// NEW: Persona Page Navigation
+function showPersonaPage(persona) {
+    // Hide all persona pages and welcome screen
+    document.getElementById('welcome_screen').classList.add('hidden');
+    document.getElementById('umkm_page').classList.add('hidden');
+    document.getElementById('creator_page').classList.add('hidden');
+    document.getElementById('brand_page').classList.add('hidden');
+
+    // Hide original tab navigation (will be replaced by persona-specific tabs)
+    const originalTabNav = document.querySelector('.flex.justify-center.mb-8.animate-fade-in');
+    if (originalTabNav) originalTabNav.classList.add('hidden');
+
+    // Show selected persona page
+    if (persona === 'umkm') {
+        document.getElementById('umkm_page').classList.remove('hidden');
+        switchTab('analyze'); // Default to single analysis for UMKM
+    } else if (persona === 'creator') {
+        document.getElementById('creator_page').classList.remove('hidden');
+        switchTab('social'); // Default to YouTube for Creator
+    } else if (persona === 'brand') {
+        document.getElementById('brand_page').classList.remove('hidden');
+        switchTab('social'); // Default to YouTube for Brand
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToWelcome() {
+    // Hide all persona pages
+    document.getElementById('umkm_page').classList.add('hidden');
+    document.getElementById('creator_page').classList.add('hidden');
+    document.getElementById('brand_page').classList.add('hidden');
+
+    // Hide all content views
+    hideAllViews();
+
+    // Show welcome screen
+    document.getElementById('welcome_screen').classList.remove('hidden');
+
+    // Hide original tab navigation
+    const originalTabNav = document.querySelector('.flex.justify-center.mb-8.animate-fade-in');
+    if (originalTabNav) originalTabNav.classList.add('hidden');
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function hideAllViews() {
+    const views = [analyzeView, dashboardView, socialView, batchView, guideView, aboutView];
+    views.forEach(view => view && view.classList.add('hidden'));
+}
+
+// Initialize: Hide tab navigation on first load
+function initializePersonaPages() {
+    // Hide original tab navigation initially
+    const originalTabNav = document.querySelector('.flex.justify-center.mb-8.animate-fade-in');
+    if (originalTabNav) originalTabNav.classList.add('hidden');
+
+    // Hide all content views initially
+    hideAllViews();
+
+    // Make sure welcome screen is visible
+    document.getElementById('welcome_screen').classList.remove('hidden');
+}
 
 // Page Navigation
 function showPage(page) {
     // Hide everything first
-    const views = [analyzeView, dashboardView, socialView, batchView, trainingView, guideView, aboutView];
-    const navs = [document.querySelector('.max-w-7xl + div'), document.querySelector('.flex.justify-center.mb-8')];
-    // ^ Selecting the Header and Tab Nav container roughly if they don't have IDs. 
-    // Wait, let's look at index.html again. Header is lines 107-120. Tab Nav is 123-146.
-    // They are just divs inside <main>. 
-
-    // Better strategy: Add IDs to the Header and TabNav in index.html first? 
-    // Or just toggle them via js.
-
-    // Let's assume we will manage them.
-    const headerEl = document.querySelector('main > div > div.text-center.mb-12');
-    const tabNavEl = document.querySelector('main > div > div.flex.justify-center.mb-8');
-
+    const views = [analyzeView, dashboardView, socialView, batchView, guideView, aboutView];
     views.forEach(v => v && v.classList.add('hidden'));
 
+    // Hide welcome screen and persona pages
+    document.getElementById('welcome_screen').classList.add('hidden');
+    document.getElementById('umkm_page').classList.add('hidden');
+    document.getElementById('creator_page').classList.add('hidden');
+    document.getElementById('brand_page').classList.add('hidden');
+
+    // Hide original tab navigation
+    const originalTabNav = document.querySelector('.flex.justify-center.mb-8.animate-fade-in');
+    if (originalTabNav) originalTabNav.classList.add('hidden');
+
     if (page === 'home') {
-        if (headerEl) headerEl.classList.remove('hidden');
-        if (tabNavEl) tabNavEl.classList.remove('hidden');
-        // Show current tab
-        const currentTab = localStorage.getItem('currentTab') || 'analyze';
-        switchTab(currentTab);
+        // Show welcome screen
+        document.getElementById('welcome_screen').classList.remove('hidden');
     } else if (page === 'guide') {
-        if (headerEl) headerEl.classList.add('hidden');
-        if (tabNavEl) tabNavEl.classList.add('hidden');
         guideView.classList.remove('hidden');
     } else if (page === 'about') {
-        if (headerEl) headerEl.classList.add('hidden');
-        if (tabNavEl) tabNavEl.classList.add('hidden');
         aboutView.classList.remove('hidden');
     }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Tabs
@@ -111,7 +180,6 @@ const tabAnalyze = document.getElementById('tab_analyze');
 const tabDashboard = document.getElementById('tab_dashboard');
 const tabSocial = document.getElementById('tab_social');
 const tabBatch = document.getElementById('tab_batch');
-const tabTraining = document.getElementById('tab_training');
 
 // Social Elements
 const socialUrl = document.getElementById('socialUrl');
@@ -150,15 +218,6 @@ const batchNeg = document.getElementById('batchNeg');
 const batchNeu = document.getElementById('batchNeu');
 let batchData = [];
 
-// Training Elements
-const trainFile = document.getElementById('trainFile');
-const trainDropZone = document.getElementById('trainDropZone');
-const trainFileInfo = document.getElementById('trainFileInfo');
-const trainFileName = document.getElementById('trainFileName');
-const removeTrainFileBtn = document.getElementById('removeTrainFileBtn');
-const startTrainingBtn = document.getElementById('startTrainingBtn');
-const trainingStatus = document.getElementById('trainingStatus');
-
 // Styles
 const sentimentStyles = {
     'Positif': { color: '#A6E3C5', icon: '😊', desc: 'Sentimen positif kuat terdeteksi.' },
@@ -170,6 +229,7 @@ const sentimentStyles = {
 function init() {
     checkAuthState();
     loadHistory();
+    initializePersonaPages(); // NEW: Initialize persona page system
 
     // Event Listeners
     if (inputText) inputText.addEventListener('input', updateCharCount);
@@ -190,16 +250,6 @@ function init() {
     if (removeFileBtn) removeFileBtn.addEventListener('click', removeFile);
     if (analyzeBatchBtn) analyzeBatchBtn.addEventListener('click', analyzeBatch);
     if (downloadCsvBtn) downloadCsvBtn.addEventListener('click', downloadBatchCsv);
-
-    // Training Listeners
-    if (trainFile) trainFile.addEventListener('change', handleTrainFileSelect);
-    if (trainDropZone) {
-        trainDropZone.addEventListener('dragover', (e) => { e.preventDefault(); trainDropZone.classList.add('border-[#6FB8FF]', 'bg-[#F8FBFF]'); });
-        trainDropZone.addEventListener('dragleave', (e) => { e.preventDefault(); trainDropZone.classList.remove('border-[#6FB8FF]', 'bg-[#F8FBFF]'); });
-        trainDropZone.addEventListener('drop', handleTrainFileDrop);
-    }
-    if (removeTrainFileBtn) removeTrainFileBtn.addEventListener('click', removeTrainFile);
-    if (startTrainingBtn) startTrainingBtn.addEventListener('click', startTraining);
 }
 
 function checkAuthState() {
@@ -422,37 +472,82 @@ let trendChartInstance = null;
 
 function switchTab(tab) {
     localStorage.setItem('currentTab', tab);
-    // Reset all tabs
-    [analyzeView, dashboardView, socialView, batchView, trainingView].forEach(el => el && el.classList.add('hidden'));
-    [tabAnalyze, tabDashboard, tabSocial, tabBatch, tabTraining].forEach(el => {
+
+    // Reset all content views
+    // Check if battle_view exists before trying to access it
+    const battleView = document.getElementById('battle_view');
+    [analyzeView, dashboardView, socialView, batchView].forEach(el => el && el.classList.add('hidden'));
+    if (battleView) battleView.classList.add('hidden');
+
+    // Get all tab buttons (original + persona-specific)
+    const allTabButtons = [
+        tabAnalyze, tabDashboard, tabSocial, tabBatch,
+        document.getElementById('umkm_tab_single'),
+        document.getElementById('umkm_tab_batch'),
+        document.getElementById('umkm_tab_dashboard'),
+        document.getElementById('creator_tab_youtube'),
+        document.getElementById('creator_tab_dashboard'),
+        document.getElementById('brand_tab_youtube'),
+        document.getElementById('brand_tab_battle'),
+        document.getElementById('brand_tab_dashboard')
+    ];
+
+    // Reset all tab button styles
+    allTabButtons.forEach(el => {
         if (el) {
             el.classList.remove('bg-white', 'text-[#1A1F36]', 'shadow-sm');
             el.classList.add('text-[#667085]');
         }
     });
 
+    // Activate selected tab based on current persona
     if (tab === 'analyze') {
         analyzeView.classList.remove('hidden');
-        tabAnalyze.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabAnalyze.classList.remove('text-[#667085]');
+        const activeBtn = document.getElementById('umkm_tab_single') || tabAnalyze;
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
+            activeBtn.classList.remove('text-[#667085]');
+        }
     } else if (tab === 'dashboard') {
         dashboardView.classList.remove('hidden');
-        tabDashboard.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabDashboard.classList.remove('text-[#667085]');
+        // Check which persona page is active
+        const umkmBtn = document.getElementById('umkm_tab_dashboard');
+        const creatorBtn = document.getElementById('creator_tab_dashboard');
+        const brandBtn = document.getElementById('brand_tab_dashboard');
+
+        const activeBtn = (umkmBtn && !document.getElementById('umkm_page').classList.contains('hidden')) ? umkmBtn :
+            (creatorBtn && !document.getElementById('creator_page').classList.contains('hidden')) ? creatorBtn :
+                (brandBtn && !document.getElementById('brand_page').classList.contains('hidden')) ? brandBtn : tabDashboard;
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
+            activeBtn.classList.remove('text-[#667085]');
+        }
         loadDashboardData();
     } else if (tab === 'social') {
         socialView.classList.remove('hidden');
-        tabSocial.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabSocial.classList.remove('text-[#667085]');
+        // Check which persona page is active
+        const creatorBtn = document.getElementById('creator_tab_youtube');
+        const brandBtn = document.getElementById('brand_tab_youtube');
+        const activeBtn = (creatorBtn && !document.getElementById('creator_page').classList.contains('hidden')) ? creatorBtn :
+            (brandBtn && !document.getElementById('brand_page').classList.contains('hidden')) ? brandBtn : tabSocial;
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
+            activeBtn.classList.remove('text-[#667085]');
+        }
     } else if (tab === 'batch') {
         batchView.classList.remove('hidden');
-        tabBatch.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabBatch.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabBatch.classList.remove('text-[#667085]');
-    } else if (tab === 'training') {
-        trainingView.classList.remove('hidden');
-        tabTraining.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
-        tabTraining.classList.remove('text-[#667085]');
+        const activeBtn = document.getElementById('umkm_tab_batch') || tabBatch;
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
+            activeBtn.classList.remove('text-[#667085]');
+        }
+    } else if (tab === 'battle') {
+        document.getElementById('battle_view').classList.remove('hidden');
+        const activeBtn = document.getElementById('brand_tab_battle');
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white', 'text-[#1A1F36]', 'shadow-sm');
+            activeBtn.classList.remove('text-[#667085]');
+        }
     }
 }
 
@@ -530,13 +625,96 @@ function renderBatchResults(data) {
     batchNeg.textContent = data.stats.Negatif;
     batchNeu.textContent = data.stats.Netral;
 
-    // Show top 10
+    // Show product stats if available (NEW for UMKM)
+    if (data.has_products && data.product_stats) {
+        // Create product ranking section
+        const productRankingHtml = `
+            <div class="glass-card rounded-3xl p-6 shadow-soft border border-white/50 mb-6">
+                <h4 class="text-[#1A1F36] font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-trophy text-yellow-500"></i>
+                    Performa per Produk
+                </h4>
+                <div class="space-y-3">
+                    ${Object.entries(data.product_stats)
+                .sort((a, b) => b[1].positive_pct - a[1].positive_pct)
+                .map(([product, stats]) => {
+                    const posColor = stats.positive_pct >= 70 ? 'text-green-600' : stats.positive_pct >= 50 ? 'text-yellow-600' : 'text-red-600';
+                    return `
+                                <div class="flex items-center justify-between p-3 bg-[#F8FBFF] rounded-xl">
+                                    <div class="flex-1">
+                                        <span class="font-semibold text-[#1A1F36]">${escapeHtml(product)}</span>
+                                        <div class="flex gap-2 mt-1 text-xs">
+                                            <span class="text-green-600">${stats.Positif} positif</span>
+                                            <span class="text-red-600">${stats.Negatif} negatif</span>
+                                            <span class="text-gray-600">${stats.Netral} netral</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold ${posColor}">${stats.positive_pct}%</div>
+                                        <div class="text-xs text-gray-500">positif</div>
+                                    </div>
+                                </div>
+                            `;
+                }).join('')}
+                </div>
+            </div>
+        `;
+
+        // Insert product ranking before table
+        const batchTableContainer = document.getElementById('batchResult');
+        const firstChild = batchTableContainer.firstElementChild;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = productRankingHtml;
+        batchTableContainer.insertBefore(tempDiv.firstElementChild, firstChild.nextSibling);
+    }
+
+    // Show smart insights if available (NEW for UMKM)
+    if (data.insights && data.insights.length > 0) {
+        const insightsHtml = `
+            <div class="glass-card rounded-3xl p-6 shadow-soft border border-white/50 mb-6">
+                <h4 class="text-[#1A1F36] font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                    Smart Insights
+                </h4>
+                <div class="space-y-3">
+                    ${data.insights.map(insight => {
+            const bgColor = insight.type === 'success' ? 'bg-green-50' :
+                insight.type === 'warning' ? 'bg-yellow-50' : 'bg-blue-50';
+            const borderColor = insight.type === 'success' ? 'border-green-200' :
+                insight.type === 'warning' ? 'border-yellow-200' : 'border-blue-200';
+            return `
+                            <div class="${bgColor} ${borderColor} border-l-4 p-4 rounded-lg">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">${insight.icon}</span>
+                                    <div class="flex-1">
+                                        <h5 class="font-bold text-[#1A1F36] text-sm mb-1">${insight.title}</h5>
+                                        <p class="text-sm text-[#667085]">${insight.message}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+
+        // Insert insights before table
+        const batchTableContainer = document.getElementById('batchResult');
+        const firstChild = batchTableContainer.firstElementChild;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = insightsHtml;
+        batchTableContainer.insertBefore(tempDiv.firstElementChild, firstChild.nextSibling);
+    }
+
+    // Show top 10 in table
     const previewData = data.results.slice(0, 10);
 
     batchTableBody.innerHTML = previewData.map(item => {
         const style = sentimentStyles[item.sentiment] || sentimentStyles['Netral'];
+        const productCol = item.product ? `<td class="px-4 py-3"><span class="px-2 py-1 bg-gray-100 rounded text-xs">${escapeHtml(item.product)}</span></td>` : '';
         return `
             <tr class="border-b border-[#EEF2F7] hover:bg-[#F8FBFF]">
+                ${productCol}
                 <td class="px-4 py-3 font-medium text-[#1A1F36] whitespace-normal" title="${escapeHtml(item.text)}">${escapeHtml(item.text)}</td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-[#1A1F36]" style="background-color: ${style.color}">${item.sentiment}</span>
@@ -545,6 +723,17 @@ function renderBatchResults(data) {
             </tr>
         `;
     }).join('');
+
+    // Update table header if product column exists
+    if (data.has_products) {
+        const tableHeader = document.querySelector('#batchResult table thead tr');
+        if (tableHeader && !tableHeader.querySelector('.product-header')) {
+            const productHeader = document.createElement('th');
+            productHeader.className = 'px-4 py-3 product-header';
+            productHeader.textContent = 'Produk';
+            tableHeader.insertBefore(productHeader, tableHeader.firstChild);
+        }
+    }
 
     batchResult.classList.remove('hidden');
 }
@@ -564,103 +753,6 @@ function downloadBatchCsv() {
     link.click();
     document.body.removeChild(link);
     document.body.removeChild(link);
-}
-
-// --- Training Logic ---
-function handleTrainFileSelect(e) {
-    const file = e.target.files[0];
-    if (file) showTrainFileInfo(file);
-}
-
-function handleTrainFileDrop(e) {
-    e.preventDefault();
-    trainDropZone.classList.remove('border-[#6FB8FF]', 'bg-[#F8FBFF]');
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith('.csv')) {
-        trainFile.files = e.dataTransfer.files;
-        showTrainFileInfo(file);
-    } else {
-        alert('Harap upload file CSV.');
-    }
-}
-
-function showTrainFileInfo(file) {
-    trainFileName.textContent = file.name;
-    trainFileInfo.classList.remove('hidden');
-    trainDropZone.classList.add('hidden');
-    startTrainingBtn.disabled = false;
-}
-
-function removeTrainFile() {
-    trainFile.value = '';
-    trainFileInfo.classList.add('hidden');
-    trainDropZone.classList.remove('hidden');
-    startTrainingBtn.disabled = true;
-    trainingStatus.classList.add('hidden');
-}
-
-async function startTraining() {
-    const file = trainFile.files[0];
-    if (!file) return;
-
-    if (!confirm('Proses training akan memakan waktu beberapa menit. Lanjutkan?')) return;
-
-    startTrainingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memulai...';
-    startTrainingBtn.disabled = true;
-    trainingStatus.classList.remove('hidden');
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const token = Auth.getToken();
-        const headers = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const response = await fetch('/api/upload-train-data', {
-            method: 'POST',
-            headers: headers,
-            body: formData
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Gagal memulai training');
-
-        // Start polling for status
-        pollTrainingStatus();
-
-    } catch (error) {
-        alert(error.message);
-        trainingStatus.classList.add('hidden');
-        startTrainingBtn.innerHTML = 'Mulai Training';
-        startTrainingBtn.disabled = false;
-    }
-}
-
-async function pollTrainingStatus() {
-    const pollInterval = setInterval(async () => {
-        try {
-            const response = await fetch('/api/training-status');
-            const data = await response.json();
-
-            if (!data.is_training) {
-                clearInterval(pollInterval);
-                trainingStatus.classList.add('hidden');
-                startTrainingBtn.innerHTML = 'Mulai Training';
-                startTrainingBtn.disabled = false;
-
-                if (data.message) {
-                    alert(data.message);
-                }
-            }
-        } catch (e) {
-            console.error("Polling error", e);
-            clearInterval(pollInterval);
-            trainingStatus.classList.add('hidden');
-            startTrainingBtn.innerHTML = 'Mulai Training';
-            startTrainingBtn.disabled = false;
-        }
-    }, 2000); // Check every 2 seconds
 }
 
 async function analyzeSocialMedia() {
@@ -695,6 +787,13 @@ function renderSocialResults(data) {
     socialNeg.textContent = data.stats.Negatif;
     socialNeu.textContent = data.stats.Netral;
 
+    // Store current data for saving (NEW)
+    window.currentYoutubeData = {
+        url: socialUrl.value.trim(),
+        results: data.results,
+        stats: data.stats
+    };
+
     socialCommentsList.innerHTML = data.results.map(item => {
         const style = sentimentStyles[item.sentiment] || sentimentStyles['Netral'];
         return `
@@ -712,6 +811,45 @@ function renderSocialResults(data) {
     socialResult.classList.remove('hidden');
 }
 
+// NEW: Save current YouTube analysis
+async function saveCurrentYoutubeAnalysis() {
+    if (!window.currentYoutubeData) {
+        alert('Tidak ada data untuk disimpan');
+        return;
+    }
+
+    const labelInput = document.getElementById('saveAnalysisLabel');
+    const label = labelInput.value.trim() || 'Untitled Analysis';
+    const saveBtn = document.getElementById('saveYoutubeBtn');
+
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+    saveBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/youtube/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                label: label,
+                video_url: window.currentYoutubeData.url,
+                analysis_data: window.currentYoutubeData
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+
+        alert('✅ Analisis berhasil disimpan! Anda bisa compare nanti.');
+        labelInput.value = '';
+    } catch (error) {
+        alert('❌ Gagal menyimpan: ' + error.message);
+    } finally {
+        saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan Analisis';
+        saveBtn.disabled = false;
+    }
+}
+
+
 async function loadDashboardData() {
     const loginMsg = document.getElementById('dashboard_login_msg');
     const content = document.getElementById('dashboard_content');
@@ -726,6 +864,19 @@ async function loadDashboardData() {
     content.classList.remove('hidden');
 
     try {
+        // Fetch Summary Stats (Total, Positive, Negative)
+        try {
+            const summaryRes = await Auth.fetchAuth('/api/stats/summary');
+            if (summaryRes && summaryRes.ok) {
+                const summaryData = await summaryRes.json();
+                document.getElementById('total_analyses').textContent = summaryData.total;
+                document.getElementById('positive_count').textContent = summaryData.positive;
+                document.getElementById('negative_count').textContent = summaryData.negative;
+            }
+        } catch (e) {
+            console.error("Summary Stats Error", e);
+        }
+
         // Fetch Trend Data
         const trendRes = await Auth.fetchAuth('/api/stats/trend');
         if (trendRes && trendRes.ok) {
@@ -857,6 +1008,94 @@ async function submitFeedback(correction) {
     } catch (e) {
         alert('Gagal menyimpan masukan: ' + e.message);
     }
+}
+
+// --- Brand Battle Logic ---
+async function startBattle() {
+    const urlA = document.getElementById('battleUrlA').value;
+    const urlB = document.getElementById('battleUrlB').value;
+    const btn = document.getElementById('startBattleBtn');
+
+    if (!urlA || !urlB) {
+        alert("Harap masukkan kedua URL YouTube (Brand vs Kompetitor)");
+        return;
+    }
+
+    // Loading State
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Bertarung...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/brand/battle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Optional if needed
+            },
+            body: JSON.stringify({ url_a: urlA, url_b: urlB })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+            renderBattleResult(data);
+        } else {
+            alert("Battle Error: " + (data.message || "Unknown error"));
+        }
+    } catch (e) {
+        console.error("Battle Error", e);
+        alert("Terjadi kesalahan saat menghubungi server.");
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function renderBattleResult(data) {
+    const resultSection = document.getElementById('battleResult');
+    resultSection.classList.remove('hidden');
+
+    // Update Stats A
+    document.getElementById('scoreA').textContent = data.brand_a.positive_pct + '%';
+    document.getElementById('posA').textContent = data.brand_a.stats.Positif;
+    document.getElementById('negA').textContent = data.brand_a.stats.Negatif;
+
+    // Update Stats B
+    document.getElementById('scoreB').textContent = data.brand_b.positive_pct + '%';
+    document.getElementById('posB').textContent = data.brand_b.stats.Positif;
+    document.getElementById('negB').textContent = data.brand_b.stats.Negatif;
+
+    // Update Verdict
+    const verdictEl = document.getElementById('battleVerdict');
+    const gap = data.verdict.gap;
+
+    // Dynamic Verdict Colors
+    let colorClass, icon;
+    if (gap > 0) {
+        // Winning
+        colorClass = "from-green-50 to-emerald-50 border-green-200";
+        icon = "fa-trophy text-yellow-500";
+    } else {
+        // Losing
+        colorClass = "from-red-50 to-orange-50 border-red-200";
+        icon = "fa-exclamation-triangle text-red-500";
+    }
+
+    verdictEl.className = `glass-card rounded-2xl p-6 bg-gradient-to-r ${colorClass} border flex items-center justify-between`;
+
+    verdictEl.innerHTML = `
+        <div>
+            <h4 class="text-xl font-bold text-[#1A1F36] mb-1">${data.verdict.title}</h4>
+            <p class="text-sm text-[#64748B]">${data.verdict.message}</p>
+        </div>
+        <div class="text-3xl">
+            <i class="fas ${icon}"></i>
+        </div>
+    `;
+
+    // Scroll to result
+    resultSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Start

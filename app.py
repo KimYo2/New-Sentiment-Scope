@@ -283,6 +283,29 @@ def get_sentiment_trend():
     return jsonify(response), 200
 
 
+@app.route('/api/stats/summary', methods=['GET'])
+@jwt_required()
+def get_sentiment_summary():
+    """
+    Get summary stats (Total, Positive, Negative) for the dashboard
+    """
+    current_user_id = get_jwt_identity()
+    
+    # Get all analyses for the user
+    total = Analysis.query.filter_by(user_id=current_user_id).count()
+    positive = Analysis.query.filter_by(user_id=current_user_id, sentiment='Positif').count()
+    negative = Analysis.query.filter_by(user_id=current_user_id, sentiment='Negatif').count()
+    neutral = Analysis.query.filter_by(user_id=current_user_id, sentiment='Netral').count()
+    
+    return jsonify({
+        'status': 'success',
+        'total': total,
+        'positive': positive,
+        'negative': negative,
+        'neutral': neutral
+    }), 200
+
+
 @app.route('/api/stats/wordcloud', methods=['GET'])
 @jwt_required()
 def get_wordcloud_data():
@@ -332,9 +355,9 @@ def get_wordcloud_data():
 
 
 @app.route('/api/scrape', methods=['POST'])
-def scrape_and_analyze():
+def scrape_youtube():
     """
-    Scrape comments from a URL and analyze sentiment
+    Scrape YouTube comments
     """
     try:
         data = request.get_json()
@@ -343,23 +366,26 @@ def scrape_and_analyze():
         if not url:
             return jsonify({'status': 'error', 'message': 'URL is required'}), 400
             
-        # Limit to 20 comments for performance
+        logger.info(f"Scraping YouTube URL: {url}")
+        
+        # Get comments
         comments = get_youtube_comments(url, limit=20)
         
         if not comments:
-            return jsonify({'status': 'error', 'message': 'No comments found or invalid URL'}), 400
+            return jsonify({'status': 'error', 'message': 'Could not fetch comments. Check if the video has comments enabled.'}), 400
             
+        # Analyze each comment
         results = []
         stats = {'Positif': 0, 'Negatif': 0, 'Netral': 0}
         
-        for text in comments:
-            # Skip very short comments
-            if len(text) < 3:
+        for comment in comments:
+            if len(comment) < 3:
                 continue
                 
-            sentiment, confidence = predict_sentiment_bert(text)
+            sentiment, confidence = predict_sentiment_bert(comment)
+            
             results.append({
-                'text': text,
+                'text': comment,
                 'sentiment': sentiment,
                 'confidence': confidence
             })
@@ -371,17 +397,183 @@ def scrape_and_analyze():
             'stats': stats,
             'total': len(results)
         }), 200
+        
     except Exception as e:
-        logger.error(f"Scrape error: {e}")
+        logger.error(f"YouTube scraping error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/brand/battle', methods=['POST'])
+def brand_battle():
+    """
+    Compare two YouTube videos (Brand vs Competitor)
+    """
+    try:
+        data = request.get_json()
+        url_a = data.get('url_a')
+        url_b = data.get('url_b')
+        
+        if not url_a or not url_b:
+            return jsonify({'status': 'error', 'message': 'Both URLs are required'}), 400
+            
+        # Helper function to analyze a single URL
+        def analyze_url(url):
+            comments = get_youtube_comments(url, limit=30) # Limit 30 for speed
+            if not comments: return None
+            
+            stats = {'Positif': 0, 'Negatif': 0, 'Netral': 0}
+            for comment in comments:
+                if len(comment) < 3: continue
+                sentiment, _ = predict_sentiment_bert(comment)
+                stats[sentiment] += 1
+            
+            total = sum(stats.values())
+            positive_pct = round((stats['Positif'] / total * 100), 1) if total > 0 else 0
+            
+            return {
+                'stats': stats,
+                'total': total,
+                'positive_pct': positive_pct
+            }
+            
+        # Analyze both
+        result_a = analyze_url(url_a)
+        result_b = analyze_url(url_b)
+        
+        if not result_a or not result_b:
+            return jsonify({'status': 'error', 'message': 'Failed to fetch comments for one or both videos'}), 400
+            
+        # Determine Verdict
+        gap = result_a['positive_pct'] - result_b['positive_pct']
+        if gap > 10:
+            verdict = "Dominating! 🏆"
+            message = "Brand Anda jauh lebih unggul dalam sentimen positif."
+        elif gap > 0:
+            verdict = "Leading Narrowly 👍"
+            message = "Brand Anda sedikit lebih unggul, namun kompetisi ketat."
+        elif gap > -10:
+            verdict = "Close Call 🤝"
+            message = "Sentimen berimbang. Cek keluhan untuk finding gap."
+        else:
+            verdict = "Falling Behind ⚠️"
+            message = "Kompetitor lebih disukai. Pelajari strategi mereka."
+            
+        return jsonify({
+            'status': 'success',
+            'brand_a': result_a,
+            'brand_b': result_b,
+            'verdict': {
+                'title': verdict,
+                'message': message,
+                'gap': gap
+            }
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Battle error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/youtube/save', methods=['POST'])
+def save_youtube_analysis():
+    """
+    Save YouTube analysis for later comparison (for Creators & Brand Managers)
+    """
+    try:
+        from datetime import datetime
+        data = request.get_json()
+        label = data.get('label', 'Untitled')
+        video_url = data.get('video_url')
+        analysis_data = data.get('analysis_data')
+        
+        if not video_url or not analysis_data:
+            return jsonify({'status': 'error', 'message': 'Missing required data'}), 400
+        
+        # Get current user (if authenticated, otherwise use anonymous)
+        user_id = None
+        try:
+            verify_jwt_in_request(optional=True)
+            user_id = get_jwt_identity()
+        except Exception:
+            pass  # Not authenticated
+        
+        # Save to database using raw SQL
+        import json
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO saved_youtube_analysis (user_id, label, video_url, analysis_data, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, label, video_url, json.dumps(analysis_data), datetime.now()))
+        conn.commit()
+        saved_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Analysis saved successfully',
+            'saved_id': saved_id
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Save YouTube analysis error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/youtube/saved', methods=['GET'])
+def get_saved_youtube():
+    """
+    Get list of saved YouTube analyses
+    """
+    try:
+        user_id = None
+        try:
+            verify_jwt_in_request(optional=True)
+            user_id = get_jwt_identity()
+        except Exception:
+            pass
+        
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        if user_id:
+            cursor.execute("""
+                SELECT id, label, video_url, created_at
+                FROM saved_youtube_analysis
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 10
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT id, label, video_url, created_at
+                FROM saved_youtube_analysis
+                WHERE user_id IS NULL
+                ORDER BY created_at DESC
+                LIMIT 10
+            """)
+        
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        saved = [{
+            'id': row[0],
+            'label': row[1],
+            'video_url': row[2],
+            'created_at': str(row[3])
+        } for row in rows]
+        
+        return jsonify({'status': 'success', 'saved': saved}), 200
+        
+    except Exception as e:
+        logger.error(f"Get saved YouTube error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @app.route('/api/batch-classify', methods=['POST'])
 def batch_classify():
     """
     Classify sentiment for a batch of texts from CSV/Excel file
+    Enhanced with product grouping for UMKM
     """
     try:
         if 'file' not in request.files:
@@ -421,6 +613,15 @@ def batch_classify():
                     
         if not text_col:
              return jsonify({'status': 'error', 'message': 'Could not find a text column in the file'}), 400
+        
+        # Check for Product column (NEW)
+        product_col = None
+        possible_product_cols = ['product', 'produk', 'nama produk', 'product name', 'item']
+        
+        for col in df.columns:
+            if col.lower() in possible_product_cols:
+                product_col = col
+                break
              
         # Limit rows for performance
         if len(df) > 1000:
@@ -428,6 +629,8 @@ def batch_classify():
             
         results = []
         stats = {'Positif': 0, 'Negatif': 0, 'Netral': 0}
+        product_stats = {}  # NEW: Track stats per product
+        product_reviews = {}  # NEW: Store reviews per product for insights
         
         for index, row in df.iterrows():
             text = str(row[text_col])
@@ -436,21 +639,105 @@ def batch_classify():
                 
             sentiment, confidence = predict_sentiment_bert(text)
             
-            results.append({
+            result_item = {
                 'text': text,
                 'sentiment': sentiment,
                 'confidence': confidence,
                 'original_row': index
-            })
-            stats[sentiment] += 1
+            }
             
-        return jsonify({
+            # Add product info if available (NEW)
+            if product_col:
+                product = str(row[product_col])
+                result_item['product'] = product
+                
+                # Initialize product stats if not exists
+                if product not in product_stats:
+                    product_stats[product] = {'Positif': 0, 'Negatif': 0, 'Netral': 0, 'total': 0}
+                    product_reviews[product] = {'positive': [], 'negative': []}
+                
+                # Update product stats
+                product_stats[product][sentiment] += 1
+                product_stats[product]['total'] += 1
+                
+                # Store reviews for insights generation
+                if sentiment == 'Positif':
+                    product_reviews[product]['positive'].append(text.lower())
+                elif sentiment == 'Negatif':
+                    product_reviews[product]['negative'].append(text.lower())
+            
+            results.append(result_item)
+            stats[sentiment] += 1
+        
+        # Generate Smart Insights (NEW)
+        insights = []
+        if product_col and product_stats:
+            # Calculate percentage for each product
+            for product, pstats in product_stats.items():
+                total = pstats['total']
+                if total > 0:
+                    pos_pct = round((pstats['Positif'] / total) * 100)
+                    neg_pct = round((pstats['Negatif'] / total) * 100)
+                    pstats['positive_pct'] = pos_pct
+                    pstats['negative_pct'] = neg_pct
+            
+            # Find best performing product
+            best_product = max(product_stats.items(), key=lambda x: x[1]['positive_pct'])
+            insights.append({
+                'type': 'success',
+                'icon': '🌟',
+                'title': 'Produk Terbaik',
+                'message': f"{best_product[0]} memiliki {best_product[1]['positive_pct']}% review positif!"
+            })
+            
+            # Find worst performing product
+            worst_product = max(product_stats.items(), key=lambda x: x[1]['negative_pct'])
+            if worst_product[1]['negative_pct'] > 30:
+                insights.append({
+                    'type': 'warning',
+                    'icon': '⚠️',
+                    'title': 'Perlu Perhatian',
+                    'message': f"{worst_product[0]} mendapat {worst_product[1]['negative_pct']}% review negatif. Perlu ditingkatkan."
+                })
+            
+            # Extract common keywords from negative reviews
+            all_negative_text = ' '.join([rev for reviews in product_reviews.values() for rev in reviews['negative']])
+            if all_negative_text:
+                # Simple keyword extraction
+                import re
+                from collections import Counter
+                words = re.findall(r'\w+', all_negative_text)
+                # Filter stopwords and common words
+                stopwords = {'yang', 'dan', 'di', 'tidak', 'ini', 'ke', 'untuk', 'dari', 'dengan', 'saya', 'nya'}
+                keywords = [w for w in words if w not in stopwords and len(w) > 3]
+                common_issues = Counter(keywords).most_common(3)
+                
+                if common_issues:
+                    issue_keywords = ', '.join([f'"{word}"' for word, count in common_issues])
+                    insights.append({
+                        'type': 'info',
+                        'icon': '💡',
+                        'title': 'Keluhan Umum',
+                        'message': f'Kata yang sering muncul di review negatif: {issue_keywords}'
+                    })
+            
+        response = {
             'status': 'success',
             'results': results,
             'stats': stats,
             'total': len(results),
             'filename': file.filename
-        }), 200
+        }
+        
+        # Add product-specific data if available (NEW)
+        if product_col:
+            response['has_products'] = True
+            response['product_stats'] = product_stats
+            response['insights'] = insights
+        else:
+            response['has_products'] = False
+        
+        return jsonify(response), 200
         
     except Exception as e:
         logger.error(f"Batch analysis error: {e}")

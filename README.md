@@ -2,7 +2,7 @@
 
 ![SentimentScope Banner](https://img.shields.io/badge/Status-Active-success?style=for-the-badge) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge) ![Flask](https://img.shields.io/badge/Flask-3.0-green?style=for-the-badge) ![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)
 
-**SentimentScope** adalah aplikasi analisis sentimen canggih yang dirancang khusus untuk memahami nuansa Bahasa Indonesia. Dibangun menggunakan teknologi Deep Learning (**IndoBERT**), aplikasi ini mampu mendeteksi emosi di balik teks, baik itu dari ulasan produk, komentar media sosial, atau dokumen dalam jumlah besar.
+**SentimentScope** adalah platform analisis sentimen cerdas yang dirancang untuk memahami opini publik di Indonesia secara mendalam. Dibangun dengan teknologi Deep Learning (**IndoBERT**), aplikasi ini tidak hanya sekadar mengklasifikasikan Positif/Negatif, tetapi memberikan *actionable insights* yang disesuaikan untuk tiga target pengguna utama: **UMKM**, **Content Creator**, dan **Brand Manager**.
 
 ---
 
@@ -10,117 +10,124 @@
 
 | Atribut | Detail |
 | :--- | :--- |
-| **Nama** | **Revi Arda Saputra** |
+| **Lead Developer** | **Revi Arda Saputra** |
+| **Support Developer** | **Danang Yoga Andimas** |
 | **Institusi** | **UNISNU JEPARA** |
-| **Proyek** | Tugas Akhir / SCERDAS |
+| **Mata Kuliah** | **Interaksi Manusia dan Komputer (IMK)** |
 
 ---
 
-## ✨ Fitur Unggulan
+## ✨ Fitur Utama Berdasarkan Persona
 
-Aplikasi ini hadir dengan berbagai fitur powerful untuk kebutuhan analisis data Anda:
+Aplikasi ini memiliki 3 mode utama yang disesuaikan dengan kebutuhan spesifik:
 
-### 1. 🔍 Analisis Satuan (Real-time)
-Deteksi sentimen secara instan untuk teks singkat. Cocok untuk mengecek caption, tweet, atau ulasan singkat.
-- **Output:** Positif, Negatif, Netral.
-- **Confidence Score:** Tingkat keyakinan model terhadap prediksi.
-- **Aspek:** Mendeteksi sentimen per aspek (misal: "Makanan enak tapi mahal" -> Makanan: Positif, Harga: Negatif).
+### 1. �️ UMKM / E-Commerce Seller
+*Optimalkan produk Anda berdasarkan review pelanggan.*
+- **Batch Analysis & Product Grouping:** Upload ribuan review (CSV/Excel), sistem otomatis mengelompokkan sentimen per produk.
+- **Smart Insights:** AI merangkum keluhan utama (misal: "packaging rusak") dan pujian (misal: "pengiriman cepat") secara otomatis.
+- **Ranking Produk:** Lihat produk mana yang memiliki sentimen terbaik dan terburuk.
 
-### 2. 📊 Analisis Batch (Big Data)
-Hemat waktu dengan memproses ribuan data sekaligus.
-- **Support:** File `.csv` dan `.xlsx`.
-- **Fitur:** Download hasil lengkap.
-- **Visualisasi:** Statistik instan porsi sentimen.
+### 2. � Content Creator
+*Pahami audiens YouTube Anda lebih dalam.*
+- **YouTube Comment Scraper:** Analisis ribuan komentar video YouTube hanya dengan paste link.
+- **Audience Feedback:** Pahami apakah reaksi netizen positif (dukungan) atau negatif (hujatan) secara instan.
+- **Word Cloud:** Visualisasi kata-kata yang paling sering muncul di kolom komentar.
 
-### 3. 📹 Social Media Intelligence (YouTube)
-Tarik data langsung dari kolom komentar YouTube untuk memahami opini audiens/netizen.
-- **Scraping:** Otomatis mengambil komentar terbaru.
-- **Analisis:** Mengelompokkan reaksi penonton (Hujatan vs Pujian).
+### 3. 📱 Brand Manager
+*Monitor reputasi brand di tengah kompetisi.*
+- **Competitor Battle (⚔️ Baru):** Bandingkan sentimen Brand Anda vs Kompetitor secara *head-to-head*.
+- **Verdict System:** AI memberikan "vonis" siapa yang memenangkan persepsi publik.
+- **Reputation Monitoring:** Pantau kesehatan brand secara real-time.
 
-### 4. 🧠 Smart Training (Fine-Tuning)
-Fitur tercanggih yang memungkinkan AI belajar dari data Anda sendiri.
-- **Custom Dataset:** Upload data CSV Anda sendiri.
-- **Adaptasi:** AI akan menyesuaikan diri dengan gaya bahasa, slang, atau konteks spesifik bisnis Anda.
+---
+
+## � Fitur Inti (Core Features)
+
+- **Deep Learning Accuracy:** Menggunakan model **IndoBERT** yang telah di-finetune (akurasi ~96%), paham bahasa gaul/slang Indonesia.
+- **Real-time Analysis:** Analisis teks satuan dengan hasil instan.
+- **Dashboard Visual:** Grafik tren sentimen, statistik ringkasan, dan word cloud interaktif.
+- **Modern UI:** Desain antarmuka "Calm & Professional" (Blue/Purple/Teal theme) berbasis **Tailwind CSS**.
+- **Secure Auth:** Sistem login/register aman dengan JWT & password hashing.
 
 ---
 
 ## 🛠️ Teknologi yang Digunakan
 
-Aplikasi ini dibangun dengan *Tech Stack* modern untuk memastikan performa dan antarmuka yang elegan.
-
-### Backend (Otak Sistem)
-- **Python**: Bahasa pemrograman utama.
-- **Flask**: Web framework yang ringan dan cepat.
-- **Hugging Face Transformers**: Library utama untuk memuat model AI.
-- **PyTorch**: Framework Deep Learning untuk proses training.
-- **Pandas**: Manipulasi dan analisis data tabular.
-- **SQLAlchemy (SQLite)**: Manajemen database lokal untuk riwayat dan user.
-
-### AI Model (Kecerdasan Buatan)
-- **Base Model**: `IndoBERT` (Bidirectional Encoder Representations from Transformers).
-- **Kelebihan**: Dilatih pada jutaan kata Bahasa Indonesia, sehingga paham konteks, bukan sekadar kata kunci.
-- **Fine-Tuning**: Kapabilitas untuk dilatih ulang agar semakin cerdas.
-
-### Frontend (Antarmuka Pengguna)
-- **HTML5 & CSS3**: Struktur dasar web.
-- **Tailwind CSS**: Framework CSS untuk desain modern dan responsif.
-- **Vanilla JavaScript**: Interaktivitas tanpa bloat framework berat.
-- **Chart.js**: Visualisasi grafik data yang interaktif.
-- **FontAwesome**: Ikon vektor berkualitas tinggi.
+- **Backend:** Python, Flask, SQLAlchemy (SQLite), JWT-Extended.
+- **AI / ML:** PyTorch, Hugging Face Transformers (IndoBERT).
+- **Frontend:** HTML5, Tailwind CSS (via CDN), Vanilla JavaScript, Chart.js.
+- **Data Processing:** Pandas, NLTK/Sastrawi (Stopwords).
 
 ---
 
-## 🚀 Cara Instalasi & Menjalankan
+## � Cara Instalasi & Menjalankan
 
-Ikuti langkah ini untuk menjalankan aplikasi di komputer lokal Anda:
+Ikuti panduan lengkap ini untuk menjalankan SentimentScope di komputer lokal Anda:
 
-### 1. Prasyarat
-Pastikan Anda sudah menginstal:
-- Python 3.9 atau lebih baru.
-- PIP (Python Package Installer).
-- Koneksi internet (untuk mengunduh model pertama kali).
+### 1. Prasyarat Sistem
+Pastikan Anda telah menginstal:
+- **Python 3.9+** ([Download disini](https://www.python.org/downloads/))
+- **Git** (Opsional, untuk clone repo)
 
-### 2. Instalasi Dependensi
-Buka terminal/CMD di folder project dan jalankan:
+### 2. Siapkan Folder Aplikasi
+1.  Pastikan Anda sudah memiliki file aplikasi (misalnya: `sentiment_classifier_app.zip`).
+2.  **Ekstrak/Unzip** file tersebut ke lokasi yang Anda inginkan (misal: di Desktop atau Documents).
+3.  Buka folder hasil ekstraksi tersebut.
+4.  Klik pada **Address Bar** di bagian atas folder, ketik `cmd`, lalu tekan **Enter**. Ini akan membuka terminal langsung di lokasi folder.
+
+### 3. Buat Virtual Environment (Disarankan)
+Agar sistem komputer Anda tetap bersih, kita buat lingkungan khusus:
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+```
+*(Jika muncul `(venv)` di kiri baris perintah, berarti berhasil)*
+
+### 4. Instalasi Dependencies
+Install semua library yang dibutuhkan:
 ```bash
 pip install -r requirements.txt
 ```
+*Note: Proses ini mungkin memakan waktu beberapa menit karena mengunduh torch dan transformers.*
 
-### 3. Menjalankan Aplikasi
-Jalankan perintah berikut:
+### 5. Jalankan Aplikasi
 ```bash
 python app.py
 ```
 Tunggu hingga muncul pesan: `Running on http://127.0.0.1:5000`
 
-### 4. Buka di Browser
-Buka browser (Chrome/Edge) dan akses alamat:
-`http://localhost:5000`
+### 6. Akses Aplikasi
+Buka browser (Chrome/Edge) dan kunjungi:
+👉 **http://127.0.0.1:5000**
 
 ---
 
-## 📂 Struktur Folder
+## 📂 Struktur Folder Project
 
 ```
 📂 sentiment_classifier_app/
-├── 📂 static/              # Aset CSS, JS, Gambar
-├── 📂 templates/           # File HTML (Frontend)
-├── 📂 instance/            # Database SQLite
-├── 📂 fine_tuned_model/    # (Otomatis) Hasil training model
-├── app.py                  # Main Server File
-├── train.py                # Script Training AI
-├── model_loader.py         # Logika pemuatan model
-├── scraper.py              # Logika scraping YouTube
-└── requirements.txt        # Daftar pustaka Python
+├── 📂 static/
+│   ├── 📂 css/             # style.css
+│   └── 📂 js/              # script.js (Logic Frontend)
+├── 📂 templates/           # File HTML (Jinja2)
+├── 📂 instance/            # Database SQLite (sentiment.db)
+├── 📂 fine_tuned_model/    # Model IndoBERT (auto-download/generated)
+├── app.py                  # Main Server File (Flask)
+├── model_loader.py         # AI Inference Logic
+├── scraper.py              # YouTube Scraping Logic
+└── requirements.txt        # Daftar Library Python
 ```
 
 ---
 
-## 📝 Catatan Penting
-- **Training Model:** Proses training (Fine-Tuning) membutuhkan resource CPU/GPU yang cukup. Pastikan komputer tidak dalam kondisi heavy load saat melakukan training.
-- **Data Privasi:** Semua data yang diupload diproses secara lokal (atau di server Anda), aman dan tidak dikirim ke pihak ketiga.
+## 📝 Catatan Tambahan
+
+- **Login Default:** Silakan register akun baru saat pertama kali membuka aplikasi.
+- **First Run:** Saat pertama kali menjalankan analisis, aplikasi akan mendownload model IndoBERT (~400MB) dari HuggingFace. Pastikan internet lancar.
+- **Privasi:** Data CSV dan analisis diproses secara lokal dan tersimpan di database SQLite lokal Anda.
 
 ---
 
-**Dibuat dengan ❤️ oleh Revi Arda Saputra @ 2024**
-*Fakultas Sains dan Teknologi - UNISNU JEPARA*
+**© 2024 SentimentScope by Revi Arda Saputra**
+*Developed for SCERDAS Project - UNISNU JEPARA*
